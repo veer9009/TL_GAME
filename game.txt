@@ -1,0 +1,120 @@
+const game=document.getElementById("game");
+const player=document.getElementById("player");
+const scoreText=document.getElementById("score");
+const gameOver=document.getElementById("gameOver");
+
+const lanes=[75,275,475];
+let lane=1;
+
+let jumping=false;
+let score=0;
+
+player.style.left=lanes[lane]+"px";
+
+document.addEventListener("keydown",(e)=>{
+
+    if(e.key==="ArrowLeft" && lane>0){
+        lane--;
+        player.style.left=lanes[lane]+"px";
+    }
+
+    if(e.key==="ArrowRight" && lane<2){
+        lane++;
+        player.style.left=lanes[lane]+"px";
+    }
+
+    if(e.key==="ArrowUp" && !jumping){
+        jump();
+    }
+
+});
+
+function jump(){
+
+    jumping=true;
+
+    let y=20;
+
+    let up=setInterval(()=>{
+
+        y+=8;
+        player.style.bottom=y+"px";
+
+        if(y>=140){
+            clearInterval(up);
+
+            let down=setInterval(()=>{
+
+                y-=8;
+                player.style.bottom=y+"px";
+
+                if(y<=20){
+                    clearInterval(down);
+                    jumping=false;
+                }
+
+            },20);
+
+        }
+
+    },20);
+
+}
+
+function spawnObstacle(){
+
+    let obs=document.createElement("div");
+    obs.className="obstacle";
+
+    let l=Math.floor(Math.random()*3);
+
+    obs.dataset.lane=l;
+
+    obs.style.left=lanes[l]+"px";
+    obs.style.top="-60px";
+
+    game.appendChild(obs);
+
+    let move=setInterval(()=>{
+
+        let top=parseInt(obs.style.top);
+
+        top+=6;
+
+        obs.style.top=top+"px";
+
+        if(top>520){
+
+            if(Number(obs.dataset.lane)===lane && !jumping){
+
+                gameOver.style.display="block";
+                clearInterval(move);
+                clearInterval(loop);
+                clearInterval(spawner);
+
+            }else{
+
+                score++;
+                scoreText.innerHTML="Score: "+score;
+
+            }
+
+        }
+
+        if(top>650){
+            obs.remove();
+            clearInterval(move);
+        }
+
+    },20);
+
+}
+
+let loop=setInterval(()=>{
+
+    score++;
+    scoreText.innerHTML="Score: "+score;
+
+},500);
+
+let spawner=setInterval(spawnObstacle,1200);

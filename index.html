@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jungle Dash</title><link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <main class="game-shell" aria-label="Jungle Dash game">
+    <canvas id="game"></canvas>
+    <section class="hud">
+      <div><div class="brand"><span>JUNGLE</span> DASH</div><div class="level-line"><span id="level">LEVEL 1</span><i><b id="progress"></b></i></div></div>
+      <div class="stats"><div><small>COINS</small><strong id="coins">0</strong></div><div><small>DISTANCE</small><strong id="distance">000</strong></div><button id="pauseButton" class="pause" aria-label="Pause game">Ⅱ</button></div>
+    </section>
+    <div class="run-info"><span id="hearts">♥♥♥</span><span id="powerStatus"></span></div>
+    <div class="toast" id="toast"></div>
+    <section class="controls"><button data-action="left" aria-label="Move left">←</button><button data-action="jump" class="jump" aria-label="Jump">↑</button><button data-action="right" aria-label="Move right">→</button></section>
+    <section class="start-screen" id="startScreen"><p class="eyebrow">AN ENDLESS ADVENTURE</p><h1>Jungle<br/><em>Dash</em></h1><p class="instructions">Choose a trail, leap fallen logs, and dodge boulders.<br/>Grab relics and power-ups to survive longer.</p><button id="startButton">START RUN</button><p class="key-hint">← → MOVE &nbsp; • &nbsp; ↑ JUMP &nbsp; • &nbsp; P PAUSE</p></section>
+    <section class="game-over hidden" id="gameOver"><p class="eyebrow">YOUR EXPEDITION ENDED</p><h2 id="endTitle">Great Run!</h2><p class="final-score"><span id="finalDistance">0</span> m &nbsp;·&nbsp; <span id="finalCoins">0</span> relics</p><p class="run-summary" id="runSummary"></p><button id="restartButton">RUN AGAIN</button></section>
+    <section class="paused hidden" id="paused"><p class="eyebrow">THE JUNGLE WAITS</p><h2>Paused</h2><button id="resumeButton">RESUME RUN</button></section>
+  </main><script src="game.js"></script>
+</body></html>
