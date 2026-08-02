@@ -6,7 +6,7 @@ let W,H,dpr,running=false,isPaused=false,last=0,player,items,particles,spawnTime
 function resize(){ dpr=devicePixelRatio||1; W=canvas.clientWidth; H=canvas.clientHeight; canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
 addEventListener('resize',resize); resize();
 function reset(){
-  player={lane:0,target:0,y:0,vy:0,invincible:0}; items=[]; particles=[]; distance=coins=0; speed=.04; lives=3; level=1; power={type:null,time:0}; spawnTimer=70;
+  player={lane:0,target:0,y:0,vy:0,invincible:0}; items=[]; particles=[]; distance=coins=0; speed=.032; lives=3; level=1; power={type:null,time:0}; spawnTimer=70;
   $('#coins').textContent='0'; $('#distance').textContent='000'; $('#level').textContent='LEVEL 1'; $('#progress').style.width='0%'; $('#hearts').textContent='♥♥♥'; $('#powerStatus').textContent='';
 }
 function start(){ reset(); running=true; isPaused=false; startScreen.classList.add('hidden'); gameOver.classList.add('hidden'); paused.classList.add('hidden'); $('#pauseButton').textContent='Ⅱ'; last=performance.now(); requestAnimationFrame(loop); toast('THE TRAIL IS CALM — FIND YOUR RHYTHM'); }
@@ -29,7 +29,7 @@ function spawn(){
 function update(dt){
   distance+=speed*dt*1.55; const nextLevel=Math.floor(distance/90)+1;
   if(nextLevel>level){level=nextLevel; toast(`LEVEL ${level} — THE PATH QUICKENS`); spark(player.lane,'#ffce52',18);}
-  speed=Math.min(.085,.04+(level-1)*.006); $('#distance').textContent=String(Math.floor(distance)).padStart(3,'0'); $('#level').textContent=`LEVEL ${level}`; $('#progress').style.width=`${distance%90/90*100}%`;
+  speed=Math.min(.07,.032+(level-1)*.005); $('#distance').textContent=String(Math.floor(distance)).padStart(3,'0'); $('#level').textContent=`LEVEL ${level}`; $('#progress').style.width=`${distance%90/90*100}%`;
   spawnTimer-=dt; if(spawnTimer<=0){spawn(); spawnTimer=Math.max(44,96-level*7+Math.random()*38);}
   player.lane=lerp(player.lane,player.target,.16*dt); player.vy-=.76*dt; player.y+=player.vy*dt; if(player.y<0){player.y=0;player.vy=0;} player.invincible=Math.max(0,player.invincible-dt);
   if(power.time>0){power.time-=dt;if(power.time<=0){power={type:null,time:0};$('#powerStatus').textContent='';}}
