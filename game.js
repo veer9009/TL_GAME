@@ -6,7 +6,7 @@ let W,H,dpr,running=false,isPaused=false,last=0,player,items,particles,spawnTime
 function resize(){ dpr=devicePixelRatio||1; W=canvas.clientWidth; H=canvas.clientHeight; canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
 addEventListener('resize',resize); resize();
 function reset(){
-  player={lane:0,target:0,y:0,vy:0,invincible:0}; items=[]; particles=[]; distance=coins=0; speed=.075; lives=3; level=1; power={type:null,time:0}; spawnTimer=70;
+  player={lane:0,target:0,y:0,vy:0,invincible:0}; items=[]; particles=[]; distance=coins=0; speed=.04; lives=3; level=1; power={type:null,time:0}; spawnTimer=70;
   $('#coins').textContent='0'; $('#distance').textContent='000'; $('#level').textContent='LEVEL 1'; $('#progress').style.width='0%'; $('#hearts').textContent='♥♥♥'; $('#powerStatus').textContent='';
 }
 function start(){ reset(); running=true; isPaused=false; startScreen.classList.add('hidden'); gameOver.classList.add('hidden'); paused.classList.add('hidden'); $('#pauseButton').textContent='Ⅱ'; last=performance.now(); requestAnimationFrame(loop); toast('THE TRAIL IS CALM — FIND YOUR RHYTHM'); }
@@ -29,7 +29,7 @@ function spawn(){
 function update(dt){
   distance+=speed*dt*1.55; const nextLevel=Math.floor(distance/90)+1;
   if(nextLevel>level){level=nextLevel; toast(`LEVEL ${level} — THE PATH QUICKENS`); spark(player.lane,'#ffce52',18);}
-  speed=Math.min(.15,.075+(level-1)*.012); $('#distance').textContent=String(Math.floor(distance)).padStart(3,'0'); $('#level').textContent=`LEVEL ${level}`; $('#progress').style.width=`${distance%90/90*100}%`;
+  speed=Math.min(.085,.04+(level-1)*.006); $('#distance').textContent=String(Math.floor(distance)).padStart(3,'0'); $('#level').textContent=`LEVEL ${level}`; $('#progress').style.width=`${distance%90/90*100}%`;
   spawnTimer-=dt; if(spawnTimer<=0){spawn(); spawnTimer=Math.max(44,96-level*7+Math.random()*38);}
   player.lane=lerp(player.lane,player.target,.16*dt); player.vy-=.76*dt; player.y+=player.vy*dt; if(player.y<0){player.y=0;player.vy=0;} player.invincible=Math.max(0,player.invincible-dt);
   if(power.time>0){power.time-=dt;if(power.time<=0){power={type:null,time:0};$('#powerStatus').textContent='';}}
@@ -55,4 +55,26 @@ function draw(){
 }
 function trees(){ctx.fillStyle='#16382b';for(const n of[-1,1])for(let i=0;i<6;i++){const p=road(.18+i*.16,n*2.1),s=p.s*35;ctx.fillRect(p.x-s*.16,p.y-s*1.2,s*.32,s*1.4);ctx.beginPath();ctx.arc(p.x,p.y-s*1.25,s*.75,0,7);ctx.fill();}}
 function item(o){const p=road(o.z,o.lane),s=p.s*36;ctx.save();ctx.translate(p.x,p.y); if(o.type==='coin'){ctx.fillStyle='#ffcf4f';ctx.beginPath();ctx.ellipse(0,-s*.7,s*.33,s*.43,0,0,7);ctx.fill();ctx.strokeStyle='#fff0a1';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#a96420';ctx.font=`${s*.45}px sans-serif`;ctx.textAlign='center';ctx.fillText('◆',0,-s*.54);} else if(o.type==='rock'){ctx.fillStyle='#574d42';ctx.beginPath();ctx.moveTo(-s*.7,0);ctx.lineTo(-s*.43,-s*.75);ctx.lineTo(s*.45,-s*.72);ctx.lineTo(s*.75,0);ctx.closePath();ctx.fill();ctx.strokeStyle='#292722';ctx.stroke();} else if(o.type==='log'){ctx.fillStyle='#694128';ctx.fillRect(-s*.82,-s*.38,s*1.64,s*.42);ctx.fillStyle='#d29a52';ctx.beginPath();ctx.arc(-s*.77,-s*.17,s*.21,0,7);ctx.fill();}else{ctx.fillStyle=o.type==='shield'?'#67dbe5':'#d68cff';ctx.beginPath();ctx.arc(0,-s*.62,s*.45,0,7);ctx.fill();ctx.strokeStyle='#fff5c5';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#fff';ctx.font=`${s*.43}px sans-serif`;ctx.textAlign='center';ctx.fillText(o.type==='shield'?'◈':'✦',0,-s*.47);}ctx.restore();}
-function runner(){const p=road(.91,player.lane),s=p.s*29,y=p.y-player.y*s*.085;ctx.save();ctx.translate(p.x,y);if(player.invincible>0&&Math.floor(player.invincible/6)%2===0)ctx.globalAlpha=.35;ctx.fillStyle='#472d22';ctx.beginPath();ctx.ellipse(0,-s*1.7,s*.32,s*.38,0,0,7);ctx.fill();ctx.fillStyle='#e1a15d';ctx.fillRect(-s*.27,-s*1.37,s*.54,s*.7);ctx.fillStyle='#c84e2c';ctx.fillRect(-s*.35,-s*1.15,s*.7,s*.75);ctx.strokeStyle='#35251e';ctx.lineWidth=s*.14;ctx.beginPath();ctx.moveTo(-s*.22,-s*.4);ctx.lineTo(-s*.33,0);ctx.moveTo(s*.22,-s*.4);ctx.lineTo(s*.33,0);ctx.stroke(); if(power.type==='shield'){ctx.strokeStyle='#82eff0';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,-s*.9,s*.72,s*1.05,0,0,7);ctx.stroke();}ctx.restore();}
+function runner(){
+  const p=road(.91,player.lane),s=p.s*29,airborne=player.y>1;
+  const phase=distance*.62,step=Math.sin(phase)*s*.27,bob=airborne?0:Math.abs(Math.cos(phase))*s*.045;
+  const y=p.y-player.y*s*.085-bob,lean=(player.target-player.lane)*.18;
+  ctx.save();ctx.translate(p.x,y);
+  ctx.fillStyle='rgba(25,30,23,.28)';ctx.beginPath();ctx.ellipse(0,s*.04,s*.62,s*.13,0,0,Math.PI*2);ctx.fill();
+  ctx.rotate(lean);
+  if(player.invincible>0&&Math.floor(player.invincible/6)%2===0)ctx.globalAlpha=.35;
+  const limb=(x1,y1,x2,y2,x3,y3,color,width)=>{ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.lineTo(x3,y3);ctx.stroke();};
+  // Rear limbs first create a more convincing running stride.
+  limb(s*.18,-s*.47,s*.25,-s*.15,s*.22+step*.28,0,'#35251e',s*.16);
+  limb(-s*.18,-s*.47,-s*.25,-s*.15,-s*.22-step*.28,0,'#35251e',s*.16);
+  limb(s*.24,-s*1.12,s*.48+step*.15,-s*.82,s*.38+step*.18,-s*.56,'#e1a15d',s*.12);
+  ctx.fillStyle='#c84e2c';ctx.beginPath();ctx.moveTo(-s*.33,-s*1.48);ctx.lineTo(s*.33,-s*1.48);ctx.lineTo(s*.4,-s*.48);ctx.lineTo(-s*.4,-s*.48);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#e1a15d';ctx.fillRect(-s*.24,-s*1.43,s*.48,s*.34);
+  limb(-s*.24,-s*1.12,-s*.48-step*.15,-s*.83,-s*.38-step*.18,-s*.56,'#e1a15d',s*.12);
+  limb(-s*.18,-s*.47,-s*.25,-s*.15,-s*.22-step*.28,0,'#2d211b',s*.16);
+  limb(s*.18,-s*.47,s*.25,-s*.15,s*.22+step*.28,0,'#2d211b',s*.16);
+  ctx.fillStyle='#e1a15d';ctx.beginPath();ctx.ellipse(0,-s*1.72,s*.31,s*.37,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#472d22';ctx.beginPath();ctx.arc(0,-s*1.82,s*.32,Math.PI,Math.PI*2);ctx.fill();
+  if(power.type==='shield'){ctx.strokeStyle='#82eff0';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,-s*.94,s*.72,s*1.05,0,0,Math.PI*2);ctx.stroke();}
+  ctx.restore();
+}
